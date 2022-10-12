@@ -26,8 +26,8 @@ class TenzieResult
     #[ORM\Column(type: 'integer')]
     private int $level;
 
-    #[ORM\Column(type: 'string', length: 512)]
-    private string $time;
+    #[ORM\Column(type: 'integer')]
+    private int $time;
 
     #[ORM\Column(type: 'datetime')]
     private \DateTime $dateAdd;
@@ -39,9 +39,9 @@ class TenzieResult
      * @param $user
      * @param $title
      * @param int $level
-     * @param string $time
+     * @param int $time
      */
-    public function __construct($user, $title, int $level, string $time)
+    public function __construct($user, $title, int $level, int $time)
     {
         $this->user = $user;
         $this->title = $title;
@@ -92,12 +92,12 @@ class TenzieResult
         return $this;
     }
 
-    public function getTime(): string
+    public function getTime(): int
     {
         return $this->time;
     }
 
-    public function setTime(string $time): self
+    public function setTime(int $time): self
     {
         $this->time = $time;
 

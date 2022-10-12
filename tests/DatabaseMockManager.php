@@ -87,7 +87,7 @@ class DatabaseMockManager
         return $authenticationTokenRepository->findOneBy(["id" => $authenticationToken->getId()]);
     }
 
-    public function testFunc_addTenzieResult(User $user, int $level, string $title, string $time, bool $deleted = false): TenzieResult
+    public function testFunc_addTenzieResult(User $user, int $level, string $title, int $time, bool $deleted = false): TenzieResult
     {
         $tenzieResultRepository = $this->getService(TenzieResultRepository::class);
 

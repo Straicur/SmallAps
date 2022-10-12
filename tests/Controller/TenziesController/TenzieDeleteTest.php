@@ -6,16 +6,16 @@ use App\Repository\TenzieResultRepository;
 use App\Tests\AbstractWebTest;
 
 /**
- * TenzieAllTest
+ * TenzieDeleteTest
  */
-class TenzieAllTest extends AbstractWebTest
+class TenzieDeleteTest extends AbstractWebTest
 {
     /**
      * step 1 - Preparing data
      * step 2 - Preparing JsonBodyContent
      * step 3 - Sending Request
      * step 4 - Checking response
-     * step 5 - Checking response if responseContent is correct
+     * step 5 - Checking response if result was deleted
      * @return void
      */
     public function test_tenzieAllCorrect(): void
@@ -31,59 +31,46 @@ class TenzieAllTest extends AbstractWebTest
         $tenzie2 = $this->databaseMockManager->testFunc_addTenzieResult($user1,2,"test2",1665405291);
         $tenzie3 = $this->databaseMockManager->testFunc_addTenzieResult($user2,2,"test2",1665405291);
 
-        $token = $this->databaseMockManager->testFunc_loginUser($user1);
+        $token = $this->databaseMockManager->testFunc_loginUser($user2);
 
-        $content = [
-            "page"=> 1,
-            "limit"=> 10
-        ];
         /// step 3
-        $crawler = self::$webClient->request("POST", "/api/tenzie/all", server: [
+        $crawler = self::$webClient->request("DELETE", "/api/tenzie/".$tenzie3->getId()->__toString(), server: [
             "HTTP_authorization" => $token->getToken()
-        ], content: json_encode($content));
-
+        ]);
         /// step 4
         $this->assertResponseIsSuccessful();
         $this->assertResponseStatusCodeSame(200);
 
-        $response = self::$webClient->getResponse();
+        $tenzie3After = $tenzieResultRepository->findOneBy([
+            "id"=>$tenzie3->getId()
+        ]);
 
-        $responseContent = json_decode($response->getContent(), true);
-        /// step 5
-        $this->assertIsArray($responseContent);
-
-        $this->assertArrayHasKey("tenzieAllModels", $responseContent);
-        $this->assertCount(2,$responseContent["tenzieAllModels"]);
+        $this->assertTrue($tenzie3After->getDeleted());
     }
     /**
-     * step 1 - Creating normal
+     * step 1 - Creating normal Tenant
      * step 2 - Preparing data
      * step 3 - Sending Request with bad permission
      * step 4 - Checking response
      *
      * @return void
      */
-    public function test_tenzieAllIncorrectPermission(): void
+    public function test_tenzieDeleteIncorrectPermission(): void
     {
         /// step 1
-        $user1 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@asuri.pl", "+48123123123", ["Guest"], true, "zaq12wsx");
-        $user2 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@asuri.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
+        $user1 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@asuri.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
+        $user2 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@asuri.pl", "+48123123123", ["Guest"], true, "zaq12wsx");
 
         $tenzie1 = $this->databaseMockManager->testFunc_addTenzieResult($user1,2,"test",1665405291);
         $tenzie2 = $this->databaseMockManager->testFunc_addTenzieResult($user1,2,"test2",1665405291);
         $tenzie3 = $this->databaseMockManager->testFunc_addTenzieResult($user2,2,"test2",1665405291);
 
-        $token = $this->databaseMockManager->testFunc_loginUser($user1);
+        $token = $this->databaseMockManager->testFunc_loginUser($user2);
 
-        $content = [
-            "page"=> 1,
-            "limit"=> 10
-        ];
         /// step 3
-        $crawler = self::$webClient->request("POST", "/api/tenzie/all", server: [
+        $crawler = self::$webClient->request("DELETE", "/api/tenzie/".$tenzie3->getId()->__toString(), server: [
             "HTTP_authorization" => $token->getToken()
-        ], content: json_encode($content));
-
+        ]);
         /// step 4
         $this->assertResponseStatusCodeSame(403);
 
@@ -99,11 +86,12 @@ class TenzieAllTest extends AbstractWebTest
         $this->assertArrayHasKey("error", $responseContent);
     }
     /**
-     * step 1 - Sending Request without content
-     * step 2 - Checking response
+     * step 1 - Preparing JsonBodyContent
+     * step 2 - Sending Request as a wrong user
+     * step 3 - Checking response
      * @return void
      */
-    public function test_tenzieAllEmptyRequest()
+    public function test_tenzieDeleteIncorrectCredentials(): void
     {
         /// step 1
         $user1 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@asuri.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
@@ -115,27 +103,27 @@ class TenzieAllTest extends AbstractWebTest
 
         $token = $this->databaseMockManager->testFunc_loginUser($user1);
 
-        $crawler = self::$webClient->request("POST", "/api/tenzie/all", server: [
+        /// step 3
+        $crawler = self::$webClient->request("DELETE", "/api/tenzie/".$tenzie3->getId()->__toString(), server: [
             "HTTP_authorization" => $token->getToken()
         ]);
+        /// step 3
+        $this->assertResponseStatusCodeSame(404);
 
-        /// step 2
-        $this->assertResponseStatusCodeSame(400);
+        $response = self::$webClient->getResponse();
 
-        $responseContent = self::$webClient->getResponse()->getContent();
+        $responseContent = json_decode($response->getContent(), true);
 
-        $this->assertNotNull($responseContent);
-        $this->assertNotEmpty($responseContent);
-        $this->assertJson($responseContent);
+        $this->assertIsArray($responseContent);
+        $this->assertArrayHasKey("error", $responseContent);
+        $this->assertArrayHasKey("data", $responseContent);
     }
     /**
-     * step 1 - Preparing data
-     * step 2 - Sending Request without token
-     * step 3 - Checking response
-     *
+     * step 1 - Sending Request without content
+     * step 2 - Checking response
      * @return void
      */
-    public function test_tenzieAllLogOut(): void
+    public function test_tenzieDeleteEmptyRequest()
     {
         /// step 1
         $user1 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@asuri.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
@@ -145,13 +133,44 @@ class TenzieAllTest extends AbstractWebTest
         $tenzie2 = $this->databaseMockManager->testFunc_addTenzieResult($user1,2,"test2",1665405291);
         $tenzie3 = $this->databaseMockManager->testFunc_addTenzieResult($user2,2,"test2",1665405291);
 
-        $content = [
-            "page"=> 1,
-            "limit"=> 10
-        ];
-        /// step 2
-        $crawler = self::$webClient->request("POST", "/api/tenzie/all", content: json_encode($content));
+        $token = $this->databaseMockManager->testFunc_loginUser($user2);
 
+        /// step 3
+        $crawler = self::$webClient->request("DELETE", "/api/tenzie/", server: [
+            "HTTP_authorization" => $token->getToken()
+        ]);
+        /// step 2
+        $this->assertResponseStatusCodeSame(404);
+
+        $response = self::$webClient->getResponse();
+
+        $responseContent = json_decode($response->getContent(), true);
+
+        $this->assertIsArray($responseContent);
+
+        $this->assertIsArray($responseContent);
+        $this->assertArrayHasKey("error", $responseContent);
+        $this->assertArrayHasKey("data", $responseContent);
+    }
+    /**
+     * step 1 - Preparing data
+     * step 2 - Sending Request without token
+     * step 3 - Checking response
+     *
+     * @return void
+     */
+    public function test_tenzieDeleteLogOut(): void
+    {
+        /// step 1
+        $user1 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@asuri.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
+        $user2 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@asuri.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
+
+        $tenzie1 = $this->databaseMockManager->testFunc_addTenzieResult($user1,2,"test",1665405291);
+        $tenzie2 = $this->databaseMockManager->testFunc_addTenzieResult($user1,2,"test2",1665405291);
+        $tenzie3 = $this->databaseMockManager->testFunc_addTenzieResult($user2,2,"test2",1665405291);
+
+        /// step 3
+        $crawler = self::$webClient->request("DELETE", "/api/tenzie/".$tenzie3->getId()->__toString());
         /// step 3
         $this->assertResponseStatusCodeSame(401);
 
