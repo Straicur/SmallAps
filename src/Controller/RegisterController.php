@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\AuthValidation;
 use App\Entity\AuthenticationToken;
 use App\Entity\RegisterCode;
 use App\Entity\User;
@@ -16,9 +17,11 @@ use App\Query\RegisterConfirmSendQuery;
 use App\Query\RegisterQuery;
 use App\Repository\AuthenticationTokenRepository;
 use App\Repository\RegisterCodeRepository;
+use App\Repository\RoleRepository;
 use App\Repository\UserInformationRepository;
 use App\Repository\UserPasswordRepository;
 use App\Repository\UserRepository;
+use App\Service\AuthorizedUserServiceInterface;
 use App\Service\RequestServiceInterface;
 use App\Tool\ResponseTool;
 use App\ValueGenerator\AuthTokenGenerator;
@@ -145,16 +148,19 @@ class RegisterController extends AbstractController
      * @param Request $request
      * @param RequestServiceInterface $requestServiceInterface
      * @param LoggerInterface $usersLogger
-     * @param UserRepository $userRepository
      * @param UserPasswordRepository $userPasswordRepository
      * @param AuthenticationTokenRepository $authenticationTokenRepository
      * @param LoggerInterface $endpointLogger
      * @param RegisterCodeRepository $registerCodeRepository
+     * @param AuthorizedUserServiceInterface $authorizedUserService
+     * @param RoleRepository $roleRepository
+     * @param UserRepository $userRepository
      * @return Response
      * @throws DataNotFoundException
      * @throws InvalidJsonDataException
      */
     #[Route("/api/register/code", name: "apiRegisterConfirm", methods: ["PATCH"])]
+    #[AuthValidation(checkAuthToken: true, roles: ["Guest"])]
     #[OA\Patch(
         description: "Method used to confirm user registration",
         security: [],
@@ -174,32 +180,27 @@ class RegisterController extends AbstractController
         ]
     )]
     public function registerConfirm(
-        Request                       $request,
-        RequestServiceInterface       $requestServiceInterface,
-        LoggerInterface               $usersLogger,
-        UserRepository                $userRepository,
-        UserPasswordRepository        $userPasswordRepository,
-        AuthenticationTokenRepository $authenticationTokenRepository,
-        LoggerInterface               $endpointLogger,
-        RegisterCodeRepository $registerCodeRepository
+        Request                        $request,
+        RequestServiceInterface        $requestServiceInterface,
+        LoggerInterface                $usersLogger,
+        UserPasswordRepository         $userPasswordRepository,
+        AuthenticationTokenRepository  $authenticationTokenRepository,
+        LoggerInterface                $endpointLogger,
+        RegisterCodeRepository         $registerCodeRepository,
+        AuthorizedUserServiceInterface $authorizedUserService,
+        RoleRepository                 $roleRepository,
+        UserRepository                 $userRepository
     ): Response
     {
         $registerConfirmQuery = $requestServiceInterface->getRequestBodyContent($request, RegisterConfirmQuery::class);
 
         if ($registerConfirmQuery instanceof RegisterConfirmQuery) {
 
-            $user = $userRepository->findOneBy([
-                "id" => $registerConfirmQuery->getUserId()
-            ]);
-
-            if ($user == null) {
-                $endpointLogger->error("Invalid Credentials");
-                throw new DataNotFoundException(["user.credentials"]);
-            }
+            $user = $authorizedUserService->getAuthorizedUser();
 
             $registerCode = $registerCodeRepository->findOneBy([
-                "code"=>$registerConfirmQuery->getRegisterCode(),
-                "user"=>$user->getId()
+                "code" => $registerConfirmQuery->getRegisterCode(),
+                "user" => $user->getId()
             ]);
 
             if ($registerCode == null || $registerCode->getDateAccept() != null) {
@@ -208,6 +209,14 @@ class RegisterController extends AbstractController
             }
 
             $registerCodeRepository->add($registerCode->setDateAdd(new \DateTime('Now')));
+
+            $userRole = $roleRepository->findOneBy([
+                "name" => "User"
+            ]);
+
+            $user->addRole($userRole);
+
+            $userRepository->add($user);
 
             $passwordEntity = $userPasswordRepository->findOneBy([
                 "user" => $user,
@@ -238,16 +247,17 @@ class RegisterController extends AbstractController
     /**
      * @param Request $request
      * @param RequestServiceInterface $requestServiceInterface
-     * @param UserInformationRepository $userInformationRepository
      * @param LoggerInterface $endpointLogger
      * @param MailerInterface $mailer
      * @param RegisterCodeRepository $registerCodeRepository
+     * @param AuthorizedUserServiceInterface $authorizedUserService
      * @return Response
      * @throws DataNotFoundException
      * @throws InvalidJsonDataException
      * @throws TransportExceptionInterface
      */
     #[Route("/api/register/code/send", name: "apiRegisterCodeSend", methods: ["POST"])]
+    #[AuthValidation(checkAuthToken: true, roles: ["Guest"])]
     #[OA\Post(
         description: "Method used to send registration code again",
         security: [],
@@ -266,23 +276,21 @@ class RegisterController extends AbstractController
         ]
     )]
     public function registerCodeSend(
-        Request                   $request,
-        RequestServiceInterface   $requestServiceInterface,
-        UserInformationRepository $userInformationRepository,
-        LoggerInterface           $endpointLogger,
-        MailerInterface           $mailer,
-        RegisterCodeRepository    $registerCodeRepository
+        Request                        $request,
+        RequestServiceInterface        $requestServiceInterface,
+        LoggerInterface                $endpointLogger,
+        MailerInterface                $mailer,
+        RegisterCodeRepository         $registerCodeRepository,
+        AuthorizedUserServiceInterface $authorizedUserService,
     ): Response
     {
         $registerConfirmSendQuery = $requestServiceInterface->getRequestBodyContent($request, RegisterConfirmSendQuery::class);
 
         if ($registerConfirmSendQuery instanceof RegisterConfirmSendQuery) {
 
-            $user = $userInformationRepository->findOneBy([
-                "email" => $registerConfirmSendQuery->getEmail()
-            ])->getUser();
+            $user = $authorizedUserService->getAuthorizedUser();
 
-            if ($user == null) {
+            if ($user->getUserInformation()->getEmail() != $registerConfirmSendQuery->getEmail()) {
                 $endpointLogger->error("Invalid Credentials");
                 throw new DataNotFoundException(["user.credentials"]);
             }
