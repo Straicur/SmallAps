@@ -25,7 +25,7 @@ class TenzieBestTest extends AbstractWebTest
         $this->assertInstanceOf(TenzieResultRepository::class, $tenzieResultRepository);
         /// step 1
         $user1 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@asuri.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
-        $user2 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@asuri.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
+        $user2 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test2@asuri.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
 
         $tenzie1 = $this->databaseMockManager->testFunc_addTenzieResult($user1,1,"test",1675405290);
         $tenzie2 = $this->databaseMockManager->testFunc_addTenzieResult($user1,1,"test2",1685405291);
@@ -91,7 +91,7 @@ class TenzieBestTest extends AbstractWebTest
         /// step 1
         $user1 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@asuri.pl", "+48123123123", ["Guest"], true, "zaq12wsx");
         /// step 2
-        $user2 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@asuri.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
+        $user2 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test2@asuri.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
 
         $tenzie1 = $this->databaseMockManager->testFunc_addTenzieResult($user1,1,"test",1675405290);
         $tenzie2 = $this->databaseMockManager->testFunc_addTenzieResult($user1,1,"test2",1685405291);
@@ -140,7 +140,7 @@ class TenzieBestTest extends AbstractWebTest
     {
         /// step 1
         $user1 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@asuri.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
-        $user2 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@asuri.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
+        $user2 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test2@asuri.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
 
         $tenzie1 = $this->databaseMockManager->testFunc_addTenzieResult($user1,1,"test",1675405290);
         $tenzie2 = $this->databaseMockManager->testFunc_addTenzieResult($user1,1,"test2",1685405291);
@@ -181,7 +181,7 @@ class TenzieBestTest extends AbstractWebTest
     {
         /// step 1
         $user1 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@asuri.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
-        $user2 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@asuri.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
+        $user2 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test2@asuri.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
 
         $tenzie1 = $this->databaseMockManager->testFunc_addTenzieResult($user1,1,"test",1675405290);
         $tenzie2 = $this->databaseMockManager->testFunc_addTenzieResult($user1,1,"test2",1685405291);

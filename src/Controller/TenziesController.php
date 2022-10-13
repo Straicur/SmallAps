@@ -33,7 +33,6 @@ use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * TenziesController
- *
  */
 #[OA\Response(
     response: 400,
