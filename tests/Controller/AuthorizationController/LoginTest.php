@@ -21,10 +21,10 @@ class LoginTest extends AbstractWebTest
     public function test_loginCorrect(): void
     {
         /// step 1
-        $user = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@asuri.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
+        $user = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@cos.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
         /// step 2
         $content = [
-            "email" => "test@asuri.pl",
+            "email" => "test@cos.pl",
             "password" => "zaq12wsx"
         ];
         /// step 3
@@ -41,16 +41,17 @@ class LoginTest extends AbstractWebTest
         $this->assertArrayHasKey("token", $responseContent);
     }
     /**
-     * step 1 - Preparing JsonBodyContent where there is no email tester@asuri.pl
+     * step 1 - Preparing JsonBodyContent where there is no email
      * step 2 - Sending Request
      * step 3 - Checking response
      * @return void
      */
     public function test_loginIncorrectCredentials(): void
     {
+        $user = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@cos.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
         /// step 1
         $content = [
-            "email" => "tester@asuri.pl",
+            "email" => "tester@cos.pl",
             "password" => "zaq12wsx"
         ];
         /// step 2
