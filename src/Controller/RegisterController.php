@@ -92,6 +92,7 @@ class RegisterController extends AbstractController
         LoggerInterface           $endpointLogger,
         RegisterCodeRepository    $registerCodeRepository,
         MailerInterface           $mailer,
+        RoleRepository            $roleRepository
     ): Response
     {
         $registerQuery = $requestServiceInterface->getRequestBodyContent($request, RegisterQuery::class);
@@ -117,6 +118,13 @@ class RegisterController extends AbstractController
                 $registerQuery->getLastname()
             ));
 
+            $userRole = $roleRepository->findOneBy([
+                "name" => "Guest"
+            ]);
+
+            $newUser->addRole($userRole);
+            $newUser->setActive(true);
+
             $userRepository->add($newUser);
 
             $registerCodeGenerator = new RegisterCodeGenerator();
@@ -125,17 +133,19 @@ class RegisterController extends AbstractController
 
             $registerCodeRepository->add($registerCode);
 
-            $email = (new TemplatedEmail())
-                ->from('mosinskidamian12@gmail.com')
-                ->to($newUser->getUserInformation()->getEmail())
-                ->subject('Kod aktywacji konta')
-                ->htmlTemplate('emails/register.html.twig')
-                ->context([
-                    "userName" => $newUser->getUserInformation()->getFirstname() . ' ' . $newUser->getUserInformation()->getLastname(),
-                    "code" => $registerCode->getCode()
-                ]);
+            if ($_ENV["APP_ENV"] != "test") {
+                $email = (new TemplatedEmail())
+                    ->from('mosinskidamian12@gmail.com')
+                    ->to($newUser->getUserInformation()->getEmail())
+                    ->subject('Kod aktywacji konta')
+                    ->htmlTemplate('emails/register.html.twig')
+                    ->context([
+                        "userName" => $newUser->getUserInformation()->getFirstname() . ' ' . $newUser->getUserInformation()->getLastname(),
+                        "code" => $registerCode->getCode()
+                    ]);
 
-            $mailer->send($email);
+                $mailer->send($email);
+            }
 
             return ResponseTool::getResponse();
         } else {
@@ -203,18 +213,22 @@ class RegisterController extends AbstractController
                 "user" => $user->getId()
             ]);
 
-            if ($registerCode == null || $registerCode->getDateAccept() != null) {
+            if ($registerCode == null || $registerCode->getDateAccept() != null || $registerCode->getUsed()) {
                 $endpointLogger->error("Invalid Credentials");
                 throw new DataNotFoundException(["code.credentials"]);
             }
 
-            $registerCodeRepository->add($registerCode->setDateAdd(new \DateTime('Now')));
+            $registerCode->setUsed(true);
+            $registerCode->setDateAccept(new \DateTime('Now'));
+
+            $registerCodeRepository->add($registerCode);
 
             $userRole = $roleRepository->findOneBy([
                 "name" => "User"
             ]);
 
             $user->addRole($userRole);
+            $user->setActive(true);
 
             $userRepository->add($user);
 
@@ -237,7 +251,6 @@ class RegisterController extends AbstractController
             $responseModel = new AuthorizationSuccessModel($authenticationToken->getToken());
 
             return ResponseTool::getResponse($responseModel);
-
         } else {
             $endpointLogger->error("Invalid given Query");
             throw new InvalidJsonDataException("register.confirm.patch.invalid.query");
@@ -308,17 +321,19 @@ class RegisterController extends AbstractController
 
             $registerCodeRepository->add($registerCode);
 
-            $email = (new TemplatedEmail())
-                ->from('mosinskidamian12@gmail.com')
-                ->to($user->getUserInformation()->getEmail())
-                ->subject('Kod aktywacji konta')
-                ->htmlTemplate('emails/register.html.twig')
-                ->context([
-                    "userName" => $user->getUserInformation()->getFirstname() . ' ' . $user->getUserInformation()->getLastname(),
-                    "code" => $registerCode->getCode()
-                ]);
+            if ($_ENV["APP_ENV"] != "test") {
+                $email = (new TemplatedEmail())
+                    ->from('mosinskidamian12@gmail.com')
+                    ->to($user->getUserInformation()->getEmail())
+                    ->subject('Kod aktywacji konta')
+                    ->htmlTemplate('emails/register.html.twig')
+                    ->context([
+                        "userName" => $user->getUserInformation()->getFirstname() . ' ' . $user->getUserInformation()->getLastname(),
+                        "code" => $registerCode->getCode()
+                    ]);
 
-            $mailer->send($email);
+                $mailer->send($email);
+            }
 
             return ResponseTool::getResponse();
         } else {

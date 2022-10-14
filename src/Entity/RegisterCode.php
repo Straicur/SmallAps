@@ -37,7 +37,7 @@ class RegisterCode
      * @param User $user
      * @param ValueGeneratorInterface $code
      */
-    public function __construct(User $user , ValueGeneratorInterface $code)
+    public function __construct(User $user, ValueGeneratorInterface $code)
     {
         $this->user = $user;
         $this->code = $code->generate();

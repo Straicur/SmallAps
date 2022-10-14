@@ -3,47 +3,69 @@
 namespace App\Tests\Controller\RegisterController;
 
 use App\Repository\RegisterCodeRepository;
+use App\Repository\UserRepository;
 use App\Tests\AbstractWebTest;
 
 /**
- * RegisterCodeSendTest
+ * RegisterConfirmTest
  */
-class RegisterCodeSendTest extends AbstractWebTest
+class RegisterConfirmTest extends AbstractWebTest
 {
     /**
      * step 1 - Preparing data
      * step 2 - Preparing JsonBodyContent
      * step 3 - Sending Request
      * step 4 - Checking response
-     * step 5 - Checking response if user is registered
+     * step 5 - Checking response if user is active
      * @return void
      */
-    public function test_registerCodeCorrect(): void
+    public function test_registerConfirmCorrect(): void
     {
+        $userRepository = $this->getService(UserRepository::class);
         $registerCodeRepository = $this->getService(RegisterCodeRepository::class);
 
         $this->assertInstanceOf(RegisterCodeRepository::class, $registerCodeRepository);
+        $this->assertInstanceOf(UserRepository::class, $userRepository);
         /// step 1
         $user = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@cos.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
-
         $registerCode = $this->databaseMockManager->testFunc_addRegisterCode($user);
         /// step 2
 
         $content = [
-            "email" => $user->getUserInformation()->getEmail(),
+            "registerCode" => $registerCode->getCode(),
         ];
 
         $token = $this->databaseMockManager->testFunc_loginUser($user);
         /// step 3
-        $crawler = self::$webClient->request("POST", "/api/register/code/send", server: [
+        $crawler = self::$webClient->request("PATCH", "/api/register/code", server: [
             "HTTP_authorization" => $token->getToken()
         ], content: json_encode($content));
         /// step 4
         $this->assertResponseIsSuccessful();
         $this->assertResponseStatusCodeSame(200);
 
-        $this->assertCount(2, $registerCodeRepository->findAll());
+        $userAfter = $userRepository->findOneBy([
+            "id"=>$user->getId()
+        ]);
 
+        $hasRole = false;
+
+        foreach ($userAfter->getRoles() as $role)
+        {
+            if($role->getName() == "User"){
+                $hasRole = true;
+            }
+        }
+
+        /// step 5
+        $this->assertTrue($hasRole);
+        $this->assertTrue($userAfter->isActive());
+
+        $codeAfter = $registerCodeRepository->findOneBy([
+            "id"=>$registerCode->getId()
+        ]);
+        $this->assertNotNull($codeAfter->getDateAccept());
+        $this->assertTrue($codeAfter->getUsed());
     }
 
     /**
@@ -54,21 +76,20 @@ class RegisterCodeSendTest extends AbstractWebTest
      *
      * @return void
      */
-    public function test_registerCodeIncorrectPermission(): void
+    public function test_registerConfirmIncorrectPermission(): void
     {
         /// step 1
         $user = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@cos.pl", "+48123123123", [], true, "zaq12wsx");
-
         $registerCode = $this->databaseMockManager->testFunc_addRegisterCode($user);
         /// step 2
 
         $content = [
-            "email" => $user->getUserInformation()->getEmail(),
+            "registerCode" => $registerCode->getCode(),
         ];
 
         $token = $this->databaseMockManager->testFunc_loginUser($user);
         /// step 3
-        $crawler = self::$webClient->request("POST", "/api/register/code/send", server: [
+        $crawler = self::$webClient->request("PATCH", "/api/register/code", server: [
             "HTTP_authorization" => $token->getToken()
         ], content: json_encode($content));
         /// step 4
@@ -85,28 +106,26 @@ class RegisterCodeSendTest extends AbstractWebTest
         $this->assertIsArray($responseContent);
         $this->assertArrayHasKey("error", $responseContent);
     }
-
     /**
-     * step 1 - Preparing JsonBodyContent with bad title
+     * step 1 - Preparing JsonBodyContent with bad registerCode
      * step 2 - Sending Request
      * step 3 - Checking response
      * @return void
      */
-    public function test_registerCodeIncorrectCredentials(): void
+    public function test_registerConfirmIncorrectCredentials(): void
     {
-        /// step 1
-        $user = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@cos.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
 
+        $user = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@cos.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
         $registerCode = $this->databaseMockManager->testFunc_addRegisterCode($user);
-        /// step 2
+        /// step 1
 
         $content = [
-            "email" => "test2@cos.pl",
+            "registerCode" => "UPqFDj",
         ];
 
         $token = $this->databaseMockManager->testFunc_loginUser($user);
         /// step 3
-        $crawler = self::$webClient->request("POST", "/api/register/code/send", server: [
+        $crawler = self::$webClient->request("PATCH", "/api/register/code", server: [
             "HTTP_authorization" => $token->getToken()
         ], content: json_encode($content));
         /// step 3
@@ -120,22 +139,19 @@ class RegisterCodeSendTest extends AbstractWebTest
         $this->assertArrayHasKey("error", $responseContent);
         $this->assertArrayHasKey("data", $responseContent);
     }
-
     /**
      * step 1 - Sending Request without content
      * step 2 - Checking response
      * @return void
      */
-    public function test_registerCodeEmptyRequest()
+    public function test_registerConfirmEmptyRequest()
     {
-        /// step 1
         $user = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@cos.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
-
         $registerCode = $this->databaseMockManager->testFunc_addRegisterCode($user);
 
         $token = $this->databaseMockManager->testFunc_loginUser($user);
-        /// step 2
-        $crawler = self::$webClient->request("POST", "/api/register/code/send", server: [
+        /// step 1
+        $crawler = self::$webClient->request("PATCH", "/api/register/code", server: [
             "HTTP_authorization" => $token->getToken()
         ]);
         /// step 2
@@ -147,7 +163,6 @@ class RegisterCodeSendTest extends AbstractWebTest
         $this->assertNotEmpty($responseContent);
         $this->assertJson($responseContent);
     }
-
     /**
      * step 1 - Preparing data
      * step 2 - Sending Request without token
@@ -155,21 +170,18 @@ class RegisterCodeSendTest extends AbstractWebTest
      *
      * @return void
      */
-    public function test_registerCodeLogOut(): void
+    public function test_registerConfirmLogOut(): void
     {
-
         /// step 1
         $user = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@cos.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
-
         $registerCode = $this->databaseMockManager->testFunc_addRegisterCode($user);
 
         $content = [
-            "email" => $user->getUserInformation()->getEmail(),
+            "registerCode" => $registerCode->getCode(),
         ];
 
-        $token = $this->databaseMockManager->testFunc_loginUser($user);
         /// step 2
-        $crawler = self::$webClient->request("POST", "/api/register/code/send", content: json_encode($content));
+        $crawler = self::$webClient->request("PATCH", "/api/register/code", content: json_encode($content));
         /// step 3
         $this->assertResponseStatusCodeSame(401);
 

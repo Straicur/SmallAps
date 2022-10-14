@@ -57,6 +57,7 @@ class RegisterCodeRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('rc')
             ->leftJoin("rc.user", "u")
             ->where("rc.dateAccept IS NOT NULL")
+            ->andWhere("rc.used = true")
             ->andWhere("u.id = :user")
             ->setParameter("user", $user->getId()->toBinary());
 

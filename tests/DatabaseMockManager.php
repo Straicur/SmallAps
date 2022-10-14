@@ -3,18 +3,21 @@
 namespace App\Tests;
 
 use App\Entity\AuthenticationToken;
+use App\Entity\RegisterCode;
 use App\Entity\TenzieResult;
 use App\Entity\User;
 use App\Entity\UserInformation;
 use App\Entity\UserPassword;
 use App\Entity\UserSettings;
 use App\Repository\AuthenticationTokenRepository;
+use App\Repository\RegisterCodeRepository;
 use App\Repository\RoleRepository;
 use App\Repository\TenzieResultRepository;
 use App\Repository\UserPasswordRepository;
 use App\Repository\UserRepository;
 use App\ValueGenerator\AuthTokenGenerator;
 use App\ValueGenerator\PasswordHashGenerator;
+use App\ValueGenerator\RegisterCodeGenerator;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 class DatabaseMockManager
@@ -100,5 +103,25 @@ class DatabaseMockManager
         $tenzieResultRepository->add($newTenzieResult);
 
         return $newTenzieResult;
+    }
+
+    public function testFunc_addRegisterCode(User $user, \DateTime $dateAccept = null, bool $used = false): RegisterCode
+    {
+        $registerCodeRepository = $this->getService(RegisterCodeRepository::class);
+
+        $registerCodeGenerator = new RegisterCodeGenerator();
+
+        $newRegisterCode = new RegisterCode($user, $registerCodeGenerator);
+
+        if ($dateAccept != null) {
+            $newRegisterCode->setDateAccept($dateAccept);
+        }
+        if ($used) {
+            $newRegisterCode->setUsed($used);
+        }
+
+        $registerCodeRepository->add($newRegisterCode);
+
+        return $newRegisterCode;
     }
 }
