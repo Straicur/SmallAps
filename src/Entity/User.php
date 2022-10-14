@@ -36,6 +36,9 @@ class User
     #[ORM\ManyToMany(targetEntity: Role::class, inversedBy: 'users')]
     private Collection $roles;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: NotebookCategory::class)]
+    private Collection $notebookCategories;
+
     public function __construct()
     {
         $this->dateCreate = new \DateTime("now");
@@ -43,6 +46,7 @@ class User
         $this->banned = false;
         $this->userInformation = null;
         $this->roles = new ArrayCollection();
+        $this->notebookCategories = new ArrayCollection();
     }
 
     /**
@@ -178,6 +182,36 @@ class User
     public function removeRole(Role $role): self
     {
         $this->roles->removeElement($role);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, NotebookCategory>
+     */
+    public function getNotebookCategories(): Collection
+    {
+        return $this->notebookCategories;
+    }
+
+    public function addNotebookCategory(NotebookCategory $notebookCategory): self
+    {
+        if (!$this->notebookCategories->contains($notebookCategory)) {
+            $this->notebookCategories->add($notebookCategory);
+            $notebookCategory->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeNotebookCategory(NotebookCategory $notebookCategory): self
+    {
+        if ($this->notebookCategories->removeElement($notebookCategory)) {
+            // set the owning side to null (unless already changed)
+            if ($notebookCategory->getUser() === $this) {
+                $notebookCategory->setUser(null);
+            }
+        }
 
         return $this;
     }

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e7716fbffc0994de2eff5696d506688c",
+    "content-hash": "28cc34dc6e893dcbbed749281ef328a6",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -9518,22 +9518,22 @@
         },
         {
             "name": "symfony/maker-bundle",
-            "version": "v1.41.0",
+            "version": "v1.47.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/maker-bundle.git",
-                "reference": "4b994dfdd0196dcb3d333fdd6a1d72d5955a9532"
+                "reference": "e607f129d29a6c1e9a9e1ef3d229d653311d58f3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/maker-bundle/zipball/4b994dfdd0196dcb3d333fdd6a1d72d5955a9532",
-                "reference": "4b994dfdd0196dcb3d333fdd6a1d72d5955a9532",
+                "url": "https://api.github.com/repos/symfony/maker-bundle/zipball/e607f129d29a6c1e9a9e1ef3d229d653311d58f3",
+                "reference": "e607f129d29a6c1e9a9e1ef3d229d653311d58f3",
                 "shasum": ""
             },
             "require": {
                 "doctrine/inflector": "^2.0",
                 "nikic/php-parser": "^4.11",
-                "php": ">=7.2.5",
+                "php": ">=8.0",
                 "symfony/config": "^5.4.7|^6.0",
                 "symfony/console": "^5.4.7|^6.0",
                 "symfony/dependency-injection": "^5.4.7|^6.0",
@@ -9544,7 +9544,9 @@
                 "symfony/http-kernel": "^5.4.7|^6.0"
             },
             "conflict": {
-                "doctrine/orm": "<2.10"
+                "doctrine/doctrine-bundle": "<2.4",
+                "doctrine/orm": "<2.10",
+                "symfony/doctrine-bridge": "<5.4"
             },
             "require-dev": {
                 "composer/semver": "^3.0",
@@ -9589,7 +9591,7 @@
             ],
             "support": {
                 "issues": "https://github.com/symfony/maker-bundle/issues",
-                "source": "https://github.com/symfony/maker-bundle/tree/v1.41.0"
+                "source": "https://github.com/symfony/maker-bundle/tree/v1.47.0"
             },
             "funding": [
                 {
@@ -9605,7 +9607,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-05-04T16:32:52+00:00"
+            "time": "2022-10-04T15:05:10+00:00"
         },
         {
             "name": "symfony/phpunit-bridge",
