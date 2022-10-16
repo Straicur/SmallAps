@@ -3,6 +3,8 @@
 namespace App\Tests;
 
 use App\Entity\AuthenticationToken;
+use App\Entity\NotebookCategory;
+use App\Entity\NotebookNote;
 use App\Entity\RegisterCode;
 use App\Entity\TenzieResult;
 use App\Entity\User;
@@ -10,6 +12,8 @@ use App\Entity\UserInformation;
 use App\Entity\UserPassword;
 use App\Entity\UserSettings;
 use App\Repository\AuthenticationTokenRepository;
+use App\Repository\NotebookCategoryRepository;
+use App\Repository\NotebookNoteRepository;
 use App\Repository\RegisterCodeRepository;
 use App\Repository\RoleRepository;
 use App\Repository\TenzieResultRepository;
@@ -123,5 +127,31 @@ class DatabaseMockManager
         $registerCodeRepository->add($newRegisterCode);
 
         return $newRegisterCode;
+    }
+
+    public function testFunc_addNotebookCategory(string $name, User $user): NotebookCategory
+    {
+        $notebookCategoryRepository = $this->getService(NotebookCategoryRepository::class);
+
+        $newNotebookCategory = new NotebookCategory($name, $user);
+
+        $notebookCategoryRepository->add($newNotebookCategory);
+
+        return $newNotebookCategory;
+    }
+
+    public function testFunc_addNotebookNote(NotebookCategory $category, string $title, string $text, \DateTime $dateEdit = null): NotebookNote
+    {
+        $notebookNoteRepository = $this->getService(NotebookNoteRepository::class);
+
+        $newNotebookNote = new NotebookNote($category, $title, $text);
+
+        if ($dateEdit != null) {
+            $newNotebookNote->setDateEdit($dateEdit);
+        }
+
+        $notebookNoteRepository->add($newNotebookNote);
+
+        return $newNotebookNote;
     }
 }

@@ -16,7 +16,7 @@ class NotebookNote
     #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
     private Uuid $id;
 
-    #[ORM\ManyToOne(targetEntity: NotebookCategory::class,inversedBy: 'notebookNotes')]
+    #[ORM\ManyToOne(targetEntity: NotebookCategory::class, inversedBy: 'notebookNotes')]
     #[ORM\JoinColumn(nullable: false)]
     private NotebookCategory $category;
 
@@ -29,8 +29,21 @@ class NotebookNote
     #[ORM\Column(type: 'datetime')]
     private \DateTime $dateAdd;
 
-    #[ORM\Column(type: 'datetime')]
-    private \DateTime $dateEdit;
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTime $dateEdit = null;
+
+    /**
+     * @param NotebookCategory $category
+     * @param string $title
+     * @param string $text
+     */
+    public function __construct(NotebookCategory $category, string $title, string $text)
+    {
+        $this->category = $category;
+        $this->title = $title;
+        $this->text = $text;
+        $this->dateAdd = new \DateTime('Now');
+    }
 
     public function getId(): Uuid
     {
@@ -90,7 +103,7 @@ class NotebookNote
         return $this->dateEdit;
     }
 
-    public function setDateEdit(\DateTime $dateEdit): self
+    public function setDateEdit(?\DateTime $dateEdit): self
     {
         $this->dateEdit = $dateEdit;
 

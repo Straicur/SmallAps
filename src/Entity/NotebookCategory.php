@@ -18,7 +18,7 @@ class NotebookCategory
     #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
     private Uuid $id;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
     private string $name;
 
     #[ORM\ManyToOne(targetEntity: User::class,inversedBy: 'notebookCategories')]
@@ -28,8 +28,10 @@ class NotebookCategory
     #[ORM\OneToMany(mappedBy: 'category', targetEntity: NotebookNote::class, cascade: ['persist', 'remove'])]
     private Collection $notebookNotes;
 
-    public function __construct()
+    public function __construct(string $name,User $user)
     {
+        $this->name = $name;
+        $this->user = $user;
         $this->notebookNotes = new ArrayCollection();
     }
 

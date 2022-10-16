@@ -69,7 +69,7 @@ class TenziesController extends AbstractController
      */
     #[Route("/api/tenzie/add", name: "apiTenzieAdd", methods: ["PUT"])]
     #[AuthValidation(checkAuthToken: true, roles: ["User"])]
-    #[OA\Post(
+    #[OA\Put(
         description: "Method used to add tenzie game result",
         security: [],
         requestBody: new OA\RequestBody(

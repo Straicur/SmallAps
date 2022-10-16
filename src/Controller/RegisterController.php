@@ -61,6 +61,7 @@ class RegisterController extends AbstractController
      * @param LoggerInterface $endpointLogger
      * @param RegisterCodeRepository $registerCodeRepository
      * @param MailerInterface $mailer
+     * @param RoleRepository $roleRepository
      * @return Response
      * @throws DataNotFoundException
      * @throws InvalidJsonDataException
