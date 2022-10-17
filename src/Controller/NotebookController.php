@@ -223,7 +223,7 @@ class NotebookController extends AbstractController
                 "id" => $notebookCategoryEditQuery->getNotebookCategoryId()
             ]);
 
-            if ($category != null || $category->getUser() !== $user) {
+            if ($category == null || $category->getUser() !== $user) {
                 $endpointLogger->error("Cant find category");
                 throw new DataNotFoundException(["noteCategory.edit.invalid.credentials"]);
             }
@@ -346,7 +346,7 @@ class NotebookController extends AbstractController
             ));
         }
 
-        return ResponseTool::getResponse();
+        return ResponseTool::getResponse($successModel);
     }
 
     /**

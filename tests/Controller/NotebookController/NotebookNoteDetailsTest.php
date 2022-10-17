@@ -11,10 +11,9 @@ class NotebookNoteDetailsTest extends AbstractWebTest
 {
     /**
      * step 1 - Preparing data
-     * step 2 - Preparing JsonBodyContent
-     * step 3 - Sending Request
-     * step 4 - Checking response
-     * step 5 - Checking response if note returned data is correct
+     * step 2 - Sending Request
+     * step 3 - Checking response
+     * step 4 - Checking response if note returned data is correct
      * @return void
      */
     public function test_notebookNoteDetailsCorrect(): void
@@ -25,19 +24,19 @@ class NotebookNoteDetailsTest extends AbstractWebTest
         $note = $this->databaseMockManager->testFunc_addNotebookNote($notebookCategory,"test","text");
 
         $token = $this->databaseMockManager->testFunc_loginUser($user);
-        /// step 3
+        /// step 2
         $crawler = self::$webClient->request("POST", "/api/notebook/note/".$note->getId()->__toString(), server: [
             "HTTP_authorization" => $token->getToken()
         ]);
 
-        /// step 4
+        /// step 3
         $this->assertResponseIsSuccessful();
         $this->assertResponseStatusCodeSame(200);
 
         $response = self::$webClient->getResponse();
 
         $responseContent = json_decode($response->getContent(), true);
-        /// step 5
+        /// step 4
         $this->assertIsArray($responseContent);
 
         $this->assertArrayHasKey("categoryId",$responseContent);
@@ -45,6 +44,12 @@ class NotebookNoteDetailsTest extends AbstractWebTest
         $this->assertArrayHasKey("id",$responseContent);
         $this->assertArrayHasKey("title",$responseContent);
         $this->assertArrayHasKey("dateAdd",$responseContent);
+
+        $this->assertSame($responseContent["categoryId"],$notebookCategory->getId()->__toString());
+        $this->assertSame($responseContent["text"],$note->getText());
+        $this->assertSame($responseContent["id"],$note->getId()->__toString());
+        $this->assertSame($responseContent["title"],$note->getTitle());
+        $this->assertSame($responseContent["dateAdd"],strval($note->getDateAdd()->getTimestamp()));
     }
     /**
      * step 1 - Creating Guest

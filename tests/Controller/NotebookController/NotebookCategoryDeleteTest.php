@@ -2,6 +2,9 @@
 
 namespace App\Tests\Controller\NotebookController;
 
+use App\Entity\NotebookCategory;
+use App\Repository\NotebookCategoryRepository;
+use App\Repository\NotebookNoteRepository;
 use App\Tests\AbstractWebTest;
 
 /**
@@ -11,34 +14,33 @@ class NotebookCategoryDeleteTest extends AbstractWebTest
 {
     /**
      * step 1 - Preparing data
-     * step 2 - Preparing JsonBodyContent
-     * step 3 - Sending Request
-     * step 4 - Checking response
-     * step 5 - Checking response if note returned data is correct
+     * step 2 - Sending Request
+     * step 3 - Checking response
+     * step 4 - Checking response if note returned data is correct
      * @return void
      */
-    public function test_notebookNoteDetailsCorrect(): void
+    public function test_notebookCategoryDeleteCorrect(): void
     {
+        $notebookNoteRepository = $this->getService(NotebookNoteRepository::class);
+        $notebookCategoryRepository = $this->getService(NotebookCategoryRepository::class);
+
+        $this->assertInstanceOf(NotebookCategoryRepository::class, $notebookCategoryRepository);
+        $this->assertInstanceOf(NotebookNoteRepository::class, $notebookNoteRepository);
         /// step 1
         $user = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@cos.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
         $notebookCategory = $this->databaseMockManager->testFunc_addNotebookCategory("test",$user);
         $note = $this->databaseMockManager->testFunc_addNotebookNote($notebookCategory,"test","text");
 
         $token = $this->databaseMockManager->testFunc_loginUser($user);
-        /// step 3
-        $crawler = self::$webClient->request("PATCH", "/api/notebook/note/".$note->getId()->__toString(), server: [
+        /// step 2
+        $crawler = self::$webClient->request("DELETE", "/api/notebook/category/".$notebookCategory->getId()->__toString(), server: [
             "HTTP_authorization" => $token->getToken()
         ]);
-        /// step 4
+        /// step 3
         $this->assertResponseIsSuccessful();
         $this->assertResponseStatusCodeSame(200);
-
-        $response = self::$webClient->getResponse();
-
-        $responseContent = json_decode($response->getContent(), true);
-        /// step 5
-        $this->assertIsArray($responseContent);
-        print_r($responseContent);
+        $this->assertCount(0,$notebookNoteRepository->findAll());
+        $this->assertCount(0,$notebookCategoryRepository->findAll());
     }
     /**
      * step 1 - Creating normal
@@ -48,26 +50,19 @@ class NotebookCategoryDeleteTest extends AbstractWebTest
      *
      * @return void
      */
-    public function test_notebookNoteDetailsIncorrectPermission(): void
+    public function test_notebookCategoryDeleteIncorrectPermission(): void
     {
         /// step 1
-        $user = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@cos.pl", "+48123123123", ["Guest"], true, "zaq12wsx");
-
+        $user1 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test1@cos.pl", "+48123123123", ["Guest"], true, "zaq12wsx");
         /// step 2
-        $notebookCategory = $this->databaseMockManager->testFunc_addNotebookCategory("test",$user);
-        $note = $this->databaseMockManager->testFunc_addNotebookNote($notebookCategory,"test","text");
+        $user2 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test2@cos.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
+        $notebookCategory = $this->databaseMockManager->testFunc_addNotebookCategory("test",$user2);
 
-        $content = [
-            "title" => "test1",
-            "text" => "text1",
-            "noteId" => $note->getId(),
-        ];
-
-        $token = $this->databaseMockManager->testFunc_loginUser($user);
+        $token = $this->databaseMockManager->testFunc_loginUser($user1);
         /// step 3
-        $crawler = self::$webClient->request("PATCH", "/api/notebook/note", server: [
+        $crawler = self::$webClient->request("DELETE", "/api/notebook/category/".$notebookCategory->getId()->__toString(), server: [
             "HTTP_authorization" => $token->getToken()
-        ], content: json_encode($content));
+        ]);
         /// step 4
         $this->assertResponseStatusCodeSame(403);
 
@@ -84,33 +79,22 @@ class NotebookCategoryDeleteTest extends AbstractWebTest
     }
 
     /**
-     * step 1 - Preparing JsonBodyContent
-     * step 2 - Sending Request as a bad user
-     * step 3 - Checking response
+     * step 1 - Sending Request as a bad user
+     * step 2 - Checking response
      * @return void
      */
-    public function test_notebookNoteDetailsIncorrectCredentials(): void
+    public function test_notebookCategoryDeleteIncorrectCredentials(): void
     {
-        /// step 1
         $user1 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@cos.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
         $user2 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test2@cos.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
+        $notebookCategory = $this->databaseMockManager->testFunc_addNotebookCategory("test",$user2);
 
-        $notebookCategory = $this->databaseMockManager->testFunc_addNotebookCategory("test",$user1);
-        $note = $this->databaseMockManager->testFunc_addNotebookNote($notebookCategory,"test","text");
-
-        /// step 2
-        $content = [
-            "title" => "test1",
-            "text" => "text1",
-            "noteId" => $note->getId(),
-        ];
-
-        $token = $this->databaseMockManager->testFunc_loginUser($user2);
-        /// step 3
-        $crawler = self::$webClient->request("PATCH", "/api/notebook/note", server: [
+        $token = $this->databaseMockManager->testFunc_loginUser($user1);
+        /// step 1
+        $crawler = self::$webClient->request("DELETE", "/api/notebook/category/".$notebookCategory->getId()->__toString(), server: [
             "HTTP_authorization" => $token->getToken()
-        ], content: json_encode($content));
-        /// step 3
+        ]);
+        /// step 2
         $this->assertResponseStatusCodeSame(404);
 
         $response = self::$webClient->getResponse();
@@ -122,32 +106,21 @@ class NotebookCategoryDeleteTest extends AbstractWebTest
         $this->assertArrayHasKey("data", $responseContent);
     }
     /**
-     * step 1 - Preparing JsonBodyContent
-     * step 2 - Sending Request as a bad user
-     * step 3 - Checking response
+     * step 1 - Sending Request with bad id
+     * step 2 - Checking response
      * @return void
      */
-    public function test_notebookNoteDetailsIncorrectNoteCredentials(): void
+    public function test_notebookCategoryDeleteIncorrectCategoryCredentials(): void
     {
+        $user = $this->databaseMockManager->testFunc_addUser("User", "Test", "test2@cos.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
+        $notebookCategory = $this->databaseMockManager->testFunc_addNotebookCategory("test",$user);
+
+        $token = $this->databaseMockManager->testFunc_loginUser($user);
         /// step 1
-        $user1 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@cos.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
-        $user2 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test2@cos.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
-
-        $notebookCategory = $this->databaseMockManager->testFunc_addNotebookCategory("test",$user1);
-        $note = $this->databaseMockManager->testFunc_addNotebookNote($notebookCategory,"test","text");
-
-        /// step 2
-        $content = [
-            "title" => "test1",
-            "text" => "text1",
-            "noteId" => "66666c4e-16e6-1ecc-9890-a7e8b0073d3b",
-        ];
-
-        $token = $this->databaseMockManager->testFunc_loginUser($user1);
-        /// step 3
-        $crawler = self::$webClient->request("PATCH", "/api/notebook/note", server: [
+        $crawler = self::$webClient->request("DELETE", "/api/notebook/category/66666c4e-16e6-1ecc-9890-a7e8b0073d3b", server: [
             "HTTP_authorization" => $token->getToken()
-        ], content: json_encode($content));
+        ]);
+
         /// step 3
         $this->assertResponseStatusCodeSame(404);
 
@@ -164,25 +137,27 @@ class NotebookCategoryDeleteTest extends AbstractWebTest
      * step 2 - Checking response
      * @return void
      */
-    public function test_notebookNoteDetailsEmptyRequest()
+    public function test_notebookCategoryDeleteEmptyRequest()
     {
-        $user = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@cos.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
-        $notebookCategory = $this->databaseMockManager->testFunc_addNotebookCategory("test",$user);
-        $note = $this->databaseMockManager->testFunc_addNotebookNote($notebookCategory,"test","text");
+        $user2 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test2@cos.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
 
-        $token = $this->databaseMockManager->testFunc_loginUser($user);
+        $notebookCategory = $this->databaseMockManager->testFunc_addNotebookCategory("test",$user2);
+
+        $token = $this->databaseMockManager->testFunc_loginUser($user2);
         /// step 1
-        $crawler = self::$webClient->request("PATCH", "/api/notebook/note", server: [
+        $crawler = self::$webClient->request("DELETE", "/api/notebook/category/", server: [
             "HTTP_authorization" => $token->getToken()
         ]);
         /// step 2
-        $this->assertResponseStatusCodeSame(400);
+        $this->assertResponseStatusCodeSame(404);
 
-        $responseContent = self::$webClient->getResponse()->getContent();
+        $response = self::$webClient->getResponse();
 
-        $this->assertNotNull($responseContent);
-        $this->assertNotEmpty($responseContent);
-        $this->assertJson($responseContent);
+        $responseContent = json_decode($response->getContent(), true);
+
+        $this->assertIsArray($responseContent);
+        $this->assertArrayHasKey("error", $responseContent);
+        $this->assertArrayHasKey("data", $responseContent);
     }
 
     /**
@@ -192,21 +167,13 @@ class NotebookCategoryDeleteTest extends AbstractWebTest
      *
      * @return void
      */
-    public function test_notebookNoteDetailsLogOut(): void
+    public function test_notebookCategoryDeleteLogOut(): void
     {
+        $user2 = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@cos.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
+        $notebookCategory = $this->databaseMockManager->testFunc_addNotebookCategory("test",$user2);
+
         /// step 1
-        $user = $this->databaseMockManager->testFunc_addUser("User", "Test", "test@cos.pl", "+48123123123", ["Guest", "User"], true, "zaq12wsx");
-        $notebookCategory = $this->databaseMockManager->testFunc_addNotebookCategory("test",$user);
-        $note = $this->databaseMockManager->testFunc_addNotebookNote($notebookCategory,"test","text");
-
-        $content = [
-            "title" => "test1",
-            "text" => "text1",
-            "noteId" => $note->getId(),
-        ];
-
-        /// step 2
-        $crawler = self::$webClient->request("PATCH", "/api/notebook/note", content: json_encode($content));
+        $crawler = self::$webClient->request("DELETE", "/api/notebook/category/".$notebookCategory->getId()->__toString());
         /// step 3
         $this->assertResponseStatusCodeSame(401);
 
@@ -214,7 +181,7 @@ class NotebookCategoryDeleteTest extends AbstractWebTest
 
         $this->assertNotNull($responseContent);
         $this->assertNotEmpty($responseContent);
-        $this->assertJson($responseContent);
+            $this->assertJson($responseContent);
 
         $responseContent = json_decode($responseContent, true);
 
