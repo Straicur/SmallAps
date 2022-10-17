@@ -98,12 +98,12 @@ class NotebookNote
         return $this;
     }
 
-    public function getDateEdit(): \DateTime
+    public function getDateEdit(): ?\DateTime
     {
         return $this->dateEdit;
     }
 
-    public function setDateEdit(?\DateTime $dateEdit): self
+    public function setDateEdit(\DateTime $dateEdit): self
     {
         $this->dateEdit = $dateEdit;
 

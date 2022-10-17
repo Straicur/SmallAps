@@ -413,9 +413,12 @@ class NotebookController extends AbstractController
                 $newNote->getTitle(),
                 $newNote->getText(),
                 $newNote->getDateAdd(),
-                $newNote->getDateEdit(),
                 $notebookCategory->getId()
             );
+
+            if ($newNote->getDateEdit() != null) {
+                $successModel->setDateEdit($newNote->getDateEdit());
+            }
 
             return ResponseTool::getResponse($successModel);
 
@@ -477,7 +480,7 @@ class NotebookController extends AbstractController
                 $endpointLogger->error("Cant find note");
                 throw new DataNotFoundException(["note.edit.invalid.credentials"]);
             }
-
+            $note->setDateEdit(new \DateTime('Now'));
             $note->setTitle($notebookNoteEditQuery->getTitle());
             $note->setText($notebookNoteEditQuery->getText());
 
@@ -488,10 +491,12 @@ class NotebookController extends AbstractController
                 $note->getTitle(),
                 $note->getText(),
                 $note->getDateAdd(),
-                $note->getDateEdit(),
                 $note->getCategory()->getId()
             );
 
+            if ($note->getDateEdit() != null) {
+                $successModel->setDateEdit($note->getDateEdit());
+            }
             return ResponseTool::getResponse($successModel);
 
         } else {
@@ -549,10 +554,9 @@ class NotebookController extends AbstractController
      * @param RequestServiceInterface $requestServiceInterface
      * @param AuthorizedUserServiceInterface $authorizedUserService
      * @param LoggerInterface $endpointLogger
-     * @param NotebookNoteRepository $notebookNoteRepository
+     * @param NotebookNote $id
      * @return Response
      * @throws DataNotFoundException
-     * @throws InvalidJsonDataException
      */
     #[Route("/api/notebook/note/{id}", name: "apiNotebookNoteDetails", methods: ["POST"])]
     #[AuthValidation(checkAuthToken: true, roles: ["User"])]
@@ -582,31 +586,24 @@ class NotebookController extends AbstractController
         NotebookNote                   $id
     ): Response
     {
-        $notebookNoteDetailsQuery = $requestServiceInterface->getRequestBodyContent($request, NotebookNoteDetailsQuery::class);
+        $user = $authorizedUserService->getAuthorizedUser();
 
-        if ($notebookNoteDetailsQuery instanceof NotebookNoteDetailsQuery) {
-
-            $user = $authorizedUserService->getAuthorizedUser();
-
-            if ($id->getCategory()->getUser() !== $user) {
-                $endpointLogger->error("Cant find note");
-                throw new DataNotFoundException(["note.details.invalid.credentials"]);
-            }
-
-            $successModel = new  NotebookNoteAddSuccessModel(
-                $id->getId(),
-                $id->getTitle(),
-                $id->getText(),
-                $id->getDateAdd(),
-                $id->getDateEdit(),
-                $id->getCategory()->getId()
-            );
-
-            return ResponseTool::getResponse($successModel);
-
-        } else {
-            $endpointLogger->error("Invalid given Query");
-            throw new InvalidJsonDataException("note.details.invalid.query");
+        if ($id->getCategory()->getUser() !== $user) {
+            $endpointLogger->error("Cant find note");
+            throw new DataNotFoundException(["note.details.invalid.credentials"]);
         }
+
+        $successModel = new  NotebookNoteDetailsSuccessModel(
+            $id->getId(),
+            $id->getTitle(),
+            $id->getText(),
+            $id->getDateAdd(),
+            $id->getCategory()->getId()
+        );
+
+        if ($id->getDateEdit() != null) {
+            $successModel->setDateEdit($id->getDateEdit());
+        }
+        return ResponseTool::getResponse($successModel);
     }
 }

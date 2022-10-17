@@ -11,7 +11,7 @@ class NotebookNoteAddSuccessModel implements ModelInterface
     private string $title;
     private string $text;
     private string $dateAdd;
-    private string $dateEdit;
+    private ?string $dateEdit = null;
     private string $categoryId;
 
     /**
@@ -19,16 +19,14 @@ class NotebookNoteAddSuccessModel implements ModelInterface
      * @param string $title
      * @param string $text
      * @param \DateTime $dateAdd
-     * @param \DateTime $dateEdit
      * @param string $categoryId
      */
-    public function __construct(string $id, string $title, string $text, \DateTime $dateAdd, \DateTime $dateEdit, string $categoryId)
+    public function __construct(string $id, string $title, string $text, \DateTime $dateAdd, string $categoryId)
     {
         $this->id = $id;
         $this->title = $title;
         $this->text = $text;
         $this->dateAdd = $dateAdd->getTimestamp();
-        $this->dateEdit = $dateEdit->getTimestamp();
         $this->categoryId = $categoryId;
     }
 
