@@ -11,7 +11,6 @@ use App\Model\DataNotFoundModel;
 use App\Model\JsonDataInvalidModel;
 use App\Query\AuthorizeQuery;
 use App\Repository\AuthenticationTokenRepository;
-use App\Repository\PdfDocsRepository;
 use App\Repository\UserInformationRepository;
 use App\Repository\UserPasswordRepository;
 use App\Service\AuthorizedUserServiceInterface;
@@ -31,7 +30,6 @@ use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * AuthorizationController
- *
  */
 #[OA\Response(
     response: 400,
@@ -78,7 +76,7 @@ class AuthorizationController extends AbstractController
         UserInformationRepository     $userInformationRepository,
         UserPasswordRepository        $userPasswordRepository,
         AuthenticationTokenRepository $authenticationTokenRepository
-    ): ?Response
+    ): Response
     {
         $authenticationQuery = $requestServiceInterface->getRequestBodyContent($request, AuthorizeQuery::class);
 
@@ -89,11 +87,11 @@ class AuthorizationController extends AbstractController
         ]);
 
         if ($userInformationEntity == null) {
-            throw new DataNotFoundException(["user.credentials"]);
+            throw new DataNotFoundException(["login.user.credentials"]);
         } else {
 
             if($userInformationEntity->getUser()->isBanned()){
-                 throw new DataNotFoundException(["user.banned"]);
+                 throw new DataNotFoundException(["login.user.banned"]);
             }
 
             $passwordEntity = $userPasswordRepository->findOneBy([
@@ -102,7 +100,7 @@ class AuthorizationController extends AbstractController
             ]);
 
             if ($passwordEntity == null) {
-                throw new DataNotFoundException(["user.credentials"]);
+                throw new DataNotFoundException(["login.user.credentials"]);
             } else {
                 $authTokenGenerator = new AuthTokenGenerator($userInformationEntity->getUser());
 

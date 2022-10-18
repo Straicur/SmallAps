@@ -53,18 +53,39 @@ class TenzieResultRepository extends ServiceEntityRepository
     /**
     //     * @param User $user
     //     * @return TenzieResult[]
-    //     */
+    //     *
+     */
     public function getActiveUserTenzieResults(User $user):array{
 
         $qb = $this->createQueryBuilder('tr')
             ->leftJoin("tr.user","u")
             ->andWhere("u.id = :user")
-//            ->andWhere("tr.user = :user")
-//            ->andWhere("u.active = :user")
             ->andWhere("tr.deleted = :deleted")
-//            ->setParameter("user", true)
             ->setParameter("user", $user->getId()->toBinary())
             ->setParameter("deleted", false);
+
+        $query = $qb->getQuery();
+
+        return $query->execute();
+    }
+
+    /**\
+     *
+     * @return TenzieResult[]
+     */
+//TenzieResult[]
+    public function getBestTenzieResults(int $level):array{
+
+        $qb = $this->createQueryBuilder('tr')
+            ->leftJoin("tr.user","u")
+            ->where("tr.deleted = :deleted")
+            ->andWhere("tr.level = :level")
+            ->setParameter("deleted", false)
+            ->orderBy("tr.level","DESC")
+            ->setParameter(":level",$level)
+            ->setFirstResult(0)
+            ->setMaxResults(10);
+
 
         $query = $qb->getQuery();
 

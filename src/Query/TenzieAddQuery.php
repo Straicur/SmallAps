@@ -28,8 +28,8 @@ class TenzieAddQuery
 
     #[Assert\NotNull(message: "Time is null")]
     #[Assert\NotBlank(message: "Time is empty")]
-    #[Assert\Type(type: "string")]
-    private string $time;
+    #[Assert\Type(type: "integer")]
+    private int $time;
 
     #[Assert\NotNull(message: "DateAdd is null")]
     #[Assert\NotBlank(message: "DateAdd is blank")]
@@ -69,17 +69,17 @@ class TenzieAddQuery
     }
 
     /**
-     * @return string
+     * @return int
      */
-    public function getTime(): string
+    public function getTime(): int
     {
         return $this->time;
     }
 
     /**
-     * @param string $time
+     * @param int $time
      */
-    public function setTime(string $time): void
+    public function setTime(int $time): void
     {
         $this->time = $time;
     }

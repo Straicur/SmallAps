@@ -9,9 +9,7 @@ namespace App\Model;
 class JsonDataInvalidModel implements ModelInterface
 {
     private string $error = "Invalid JSON Data";
-
     private string $expectingClass;
-
     private array $validationErrors;
 
     /**
