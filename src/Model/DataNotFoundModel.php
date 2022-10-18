@@ -9,7 +9,6 @@ namespace App\Model;
 class DataNotFoundModel implements ModelInterface
 {
     private string $error = "Data not found";
-
     private array $data;
 
     /**

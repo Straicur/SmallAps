@@ -87,11 +87,11 @@ class AuthorizationController extends AbstractController
         ]);
 
         if ($userInformationEntity == null) {
-            throw new DataNotFoundException(["user.credentials"]);
+            throw new DataNotFoundException(["login.user.credentials"]);
         } else {
 
             if($userInformationEntity->getUser()->isBanned()){
-                 throw new DataNotFoundException(["user.banned"]);
+                 throw new DataNotFoundException(["login.user.banned"]);
             }
 
             $passwordEntity = $userPasswordRepository->findOneBy([
@@ -100,7 +100,7 @@ class AuthorizationController extends AbstractController
             ]);
 
             if ($passwordEntity == null) {
-                throw new DataNotFoundException(["user.credentials"]);
+                throw new DataNotFoundException(["login.user.credentials"]);
             } else {
                 $authTokenGenerator = new AuthTokenGenerator($userInformationEntity->getUser());
 

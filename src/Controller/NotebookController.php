@@ -166,7 +166,7 @@ class NotebookController extends AbstractController
 
             $notebookCategoryRepository->add($newCategory);
 
-            return ResponseTool::getResponse();
+            return ResponseTool::getResponse(new NotebookCategoryAddSuccessModel($newCategory->getId(), $newCategory->getName()));
 
         } else {
             $endpointLogger->error("Invalid given Query");
@@ -287,7 +287,7 @@ class NotebookController extends AbstractController
 
         if ($id->getUser() !== $user) {
             $endpointLogger->error("Cant find category");
-            throw new DataNotFoundException(["noteCategory.edit.invalid.credentials"]);
+            throw new DataNotFoundException(["noteCategory.delete.invalid.credentials"]);
         }
 
         $notebookCategoryRepository->remove($id);
@@ -331,7 +331,7 @@ class NotebookController extends AbstractController
 
         if ($id->getUser() !== $user) {
             $endpointLogger->error("Cant find category");
-            throw new DataNotFoundException(["noteCategory.edit.invalid.credentials"]);
+            throw new DataNotFoundException(["noteCategory.detail.invalid.credentials"]);
         }
 
         $notebookNotes = $id->getNotebookNotes();

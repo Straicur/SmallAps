@@ -11,7 +11,6 @@ namespace App\Model;
 class NotAuthorizeModel implements ModelInterface
 {
     private string $error = "User not authorized";
-
     private string $description = "Authorization token could be NULL, invalid or expired";
 
     public function __construct()

@@ -12,12 +12,10 @@ class TenzieAllSuccessModel implements ModelInterface
      * @var TenzieAllModel[]
      */
     private array $tenzieAllModels = [];
-
     private int $page;
-
     private int $limit;
-
     private int $maxPage;
+
     /**
      * @return array
      */

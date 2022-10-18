@@ -12,7 +12,6 @@ class TenzieBestModel
      * @var TenzieAllModel[]
      */
     private array $tenzieAllModels = [];
-
     private int $level;
 
     /**

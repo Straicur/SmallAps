@@ -40,6 +40,14 @@ class NotebookCategoryAddTest extends AbstractWebTest
         /// step 4
         $this->assertResponseIsSuccessful();
         $this->assertResponseStatusCodeSame(200);
+        $response = self::$webClient->getResponse();
+
+        $responseContent = json_decode($response->getContent(), true);
+        /// step 4
+        $this->assertIsArray($responseContent);
+
+        $this->assertArrayHasKey("id",$responseContent);
+        $this->assertArrayHasKey("name",$responseContent);
 
         $this->assertCount(2,$notebookCategoryRepository->findAll());
     }

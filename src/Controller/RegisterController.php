@@ -216,7 +216,7 @@ class RegisterController extends AbstractController
 
             if ($registerCode == null || $registerCode->getDateAccept() != null || $registerCode->getUsed()) {
                 $endpointLogger->error("Invalid Credentials");
-                throw new DataNotFoundException(["code.credentials"]);
+                throw new DataNotFoundException(["register.confirm.code.credentials"]);
             }
 
             $registerCode->setUsed(true);
@@ -239,7 +239,7 @@ class RegisterController extends AbstractController
 
             if ($passwordEntity == null) {
                 $endpointLogger->error("Invalid Credentials");
-                throw new DataNotFoundException(["password.credentials"]);
+                throw new DataNotFoundException(["register.confirm.password.credentials"]);
             }
 
             $authTokenGenerator = new AuthTokenGenerator($user);
@@ -306,14 +306,14 @@ class RegisterController extends AbstractController
 
             if ($user->getUserInformation()->getEmail() != $registerConfirmSendQuery->getEmail()) {
                 $endpointLogger->error("Invalid Credentials");
-                throw new DataNotFoundException(["user.credentials"]);
+                throw new DataNotFoundException(["register.code.send.user.credentials"]);
             }
 
             $registerCode = $registerCodeRepository->getUsedCode($user);
 
             if ($registerCode != null) {
                 $endpointLogger->error("Invalid Credentials");
-                throw new DataNotFoundException(["code.credentials"]);
+                throw new DataNotFoundException(["register.code.send.invalid.credentials"]);
             }
 
             $registerCodeGenerator = new RegisterCodeGenerator();
